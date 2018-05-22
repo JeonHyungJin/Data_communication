@@ -28,6 +28,7 @@ ACK_arr = [0b0000, 0b0001, 0b0010, 0b0011, 0b0100, 0b0101, 0b0110, 0b0111]
 file_send_clear = False
 
 sender_index = 0
+window_index = 0
 
 print("Sender Socket open..")
 print("Receiver IP = " + serverIP)
@@ -48,12 +49,6 @@ msg = file_info_checksum_hashed + first_uncheck_msg
 
 file = open(file_name, "rb")
 
-'''
-window.append(msg)
-temp_index = sender_index
-sender_index = ( sender_index + 1 ) % 8
-'''
-
 while not file_send_clear:
 	if (len(window) <= window_size) and not file_send_clear:
 		
@@ -61,7 +56,8 @@ while not file_send_clear:
 		temp_index = sender_index
 		sender_index = ( sender_index + 1 ) % 8
 
-		clnt_sock.sendto(window[0],(serverIP, serverPort))
+		clnt_sock.sendto(window[window_index],(serverIP, serverPort))
+		window_index += 1
 		data = file.read(1024)
 		
 		data_msg = make_seq_ack(seq_num_arr[sender_index],ACK_arr[sender_index])+ data
@@ -78,12 +74,14 @@ while not file_send_clear:
 	temp = struct.unpack("!1c",recv_ack)[0]
 	ack_num = temp[0] & 0x0F		
 	
+	#이 부분은 NAK이 아닌 경우이므로 추후에 처리 필요
 	finded_ack_index = find_ack(ack_num)
 	between_finded_temp_index = abs(finded_ack_index - temp_index)
 	
 	loop_index = between_finded_temp_index + 1
 
 	for i in range(0, loop_index):
+		window_index -= 1
 		del window[0]
 			
 

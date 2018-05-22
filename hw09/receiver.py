@@ -46,7 +46,7 @@ while True:
 	hashing_data.update(unhash_data)
 	hashed_data = hashing_data.digest()
 
-	if(checksum == hashed_data):
+	if(checksum == hashed_data):	#ACK 보냄
 		file.write(file_data)
 		server_sock.sendto(seq_ack, addr)
 		count_size += len(data)
@@ -54,8 +54,6 @@ while True:
 	if(count_size >= file_size):
 		break
 	
-	
-	
-		
 print("File Received End.")
+file.close()
 
